@@ -1,2 +1,2 @@
 # SnakeQ
-DQNAgent is learning o play snake. Still in development.
+DQNAgent is learning to play snake. Still in development.
