@@ -1,68 +1,18 @@
 import numpy as np
 import random
 
-class SnakeSensors:
-    def __init__(self, x):
-        """
-        Return array where are saved all information about snake and his sensors,
-        which will get pass to agent through neural network for choosing action
-        Sensors:
-            1. distance to walls (4 dim)
-            2. distance to body snake (8 dim)
-            3. distance to apple (12 dim)
-            4. direction of head
-            5. direction of tail
-            Note: distance is converted between 0.0 to 1.0
-        """
-        self.dis = x    # row/x/distance
-    
-    def check_up(self):
-        pass
-    
-    def check_down(self):
-        pass
-
-    def check_left(self):
-        pass
-
-    def check_right(self):
-        pass
-    
-    def update_board(self, board, snake):
-        self.board = board
-        self.snake_body = snake
-        self.head_pos = self.snake_body[-1]
-    
-    def distance_to_wall(self):
-        self.board[self.head_pos[1], self.head_pos[0]]
-        for i in range(0, self.dis):
-            pass
-        return
-
-    def see_apple(self):
-        return
-
-    def see_it_self(self):
-        return
-
-
+import snake_sensors
 
 class Environment:
     def __init__(self, row):
-        """
-        Numbers on board:
-        0 = empty space
-        1 = snake body
-        2 = apple
-        """
         # parameters
-        self.Sensors = SnakeSensors(row) # all logic to get state
+        self.board_info = {"empty": 0, "snake": 1, "apple": 2}
+        self.Sensors = snake_sensors.SnakeSensors(row, self.board_info) # all logic to get state
         self.eaten_apples = 1           # track of eaten apple
         self.apple_pos = None           # position of current apple
-        self.prev_apple_pos = None      # checking if snake should pop out tail after eating apple
-        self.steps = 0                  # every action untill apple is eaten
         self.head_dir = None            # direction of head of snake
         self.tail_dir = None            # direction of head of snake
+        self.steps = 0                  # every action untill apple is eaten
         self.done = False               # if env/game is finished
         self.finished_game = {"not finished"} # info about state of game
 
@@ -140,12 +90,15 @@ class Environment:
         self.board[self.apple_pos[1], self.apple_pos[0]] = 2
 
     def get_state(self):
-        ##########################
-        #sensors_array = np.array()
-        
-        #output = self.Sensors.distance_to_wall()
+        self.Sensors.update_board(self.board, self.apple_pos, self.snake_body)
+        distance_sensor = self.Sensors.distance_to_wall()
+        apple_sensor = self.Sensors.see_apple()
+        snake_body_sensor = self.Sensors.see_it_self()
+        head_dir_sensor = self.Sensors.get_head_direction(self.head_dir)
+        if len(self.snake_body) > 1: tail_dir_sensor = self.Sensors.get_tail_direction()
+        else: tail_dir_sensor = np.array([0, 0, 0, 0])
 
-        return #sensors_array
+        return np.append(np.append(np.append(np.append(distance_sensor, apple_sensor, axis=0), snake_body_sensor, axis=0), head_dir_sensor, axis=0), tail_dir_sensor, axis=0)
     
     def select_random_action(self):
         list_of_action = np.array([0, 1, 2, 3])
@@ -159,13 +112,13 @@ class Environment:
     def snake_move(self, direction):
         # snake can kill himself by going opposite direction
         if direction == 0:      # up
-            self.head_dir = (0, -1)              
-        elif direction == 1:    # down
+            self.head_dir = (0, -1)
+        elif direction == 1:    # right
+            self.head_dir = (1, 0)
+        elif direction == 2:    # down
             self.head_dir = (0, 1)
-        elif direction == 2:    # left
-            self.head_dir = (-1, 0)            
-        elif direction == 3:    # right
-            self.head_dir = (1, 0)             
+        elif direction == 3:    # left
+            self.head_dir = (-1, 0)
         """
         Algorithm: add new part before head in corresponding direction and delete tail
         """
@@ -180,5 +133,5 @@ class Environment:
         self.collision_with_boundaries()
         self.collision_with_apple()
         self.check_for_end()
-        self.update_board()
+        if self.done == False: self.update_board()
         return self.get_state(), self.reward, self.done, self.finished_game

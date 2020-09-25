@@ -2,6 +2,7 @@ import numpy as np
 
 import parameters as p
 import environment
+import snake_sensors
 import DQNAgent
 
 
@@ -12,7 +13,7 @@ if __name__ == "__main__":
     agent = DQNAgent.QAgent(net)
     env = environment.Environment(p.row)
 
-    print("List of directions: 0=up; 1=down; 2=left; 3=right")
+    print("List of directions: 0=up; 1=right; 2=down; 3=left")
 
     # build testing console game
     while True:
@@ -20,6 +21,7 @@ if __name__ == "__main__":
 
         direction = int(input("Direction: "))
         state, reward, done, info = env.action(direction)
+        print(state)
 
         if env.done == True:
             print("Game Over!")
