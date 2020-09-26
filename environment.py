@@ -8,19 +8,10 @@ class Environment:
         # parameters
         self.board_info = {"empty": 0, "snake": 1, "apple": 2}
         self.Sensors = snake_sensors.SnakeSensors(row, self.board_info) # all logic to get state
-        self.eaten_apples = 1           # track of eaten apple
-        self.apple_pos = None           # position of current apple
-        self.head_dir = None            # direction of head of snake
-        self.tail_dir = None            # direction of head of snake
-        self.steps = 0                  # every action untill apple is eaten
-        self.done = False               # if env/game is finished
-        self.finished_game = {"not finished"} # info about state of game
 
         # Generate components
         self.x = row
-        self.generate_grid()
-        self.generate_snake()
-        self.generate_apple()
+        self.restart_game()
     
     def generate_grid(self):
         # generate board (grid) of zeros (always square)
@@ -53,7 +44,8 @@ class Environment:
     
     def collision_with_boundaries(self):
         # if snake go beyond board; game over
-        if 0 > self.snake_body[-1][0] < self.x or 0 > self.snake_body[-1][1] < self.x:
+        if (self.snake_body[-1][0] < 0 or self.snake_body[-1][0] >= self.x) == True \
+            or (self.snake_body[-1][1] < 0 or self.snake_body[-1][1] >= self.x) == True:
             self.done = True
             self.reward = -100
 
@@ -69,10 +61,11 @@ class Environment:
                 self.generate_apple()
         else:
             self.pop_snake_tail()
+        self.get_tail_dir()
 
     def check_steps(self):
         # If taken (row*2-row) or more steps until apple is eaten -> game over
-        if self.steps >= (self.x*2-self.x):
+        if self.steps > (self.x*2-self.x):
             self.done = True
     
     def check_for_end(self):
@@ -80,6 +73,20 @@ class Environment:
         if np.all(self.board.all(1)):
             self.done = True
             self.game_info = {"finished"}
+    
+    def restart_game(self):
+        # set up parameters
+        self.eaten_apples = 1           # track of eaten apple
+        self.apple_pos = None           # position of current apple
+        self.head_dir = None            # direction of head of snake
+        self.steps = 0                  # every action untill apple is eaten
+        self.done = False               # if env/game is finished
+        self.finished_game = {"not finished"} # info about state of game
+
+        # Generate game grid
+        self.generate_grid()
+        self.generate_snake()
+        self.generate_apple()
 
     def update_board(self):
         # refresh board; write on board snake and apple
@@ -90,26 +97,21 @@ class Environment:
         self.board[self.apple_pos[1], self.apple_pos[0]] = 2
 
     def get_state(self):
-        self.Sensors.update_board(self.board, self.apple_pos, self.snake_body)
+        self.Sensors.update_sensor_board(self.board, self.apple_pos, self.snake_body)
         distance_sensor = self.Sensors.distance_to_wall()
         apple_sensor = self.Sensors.see_apple()
         snake_body_sensor = self.Sensors.see_it_self()
         head_dir_sensor = self.Sensors.get_head_direction(self.head_dir)
-        if len(self.snake_body) > 1: tail_dir_sensor = self.Sensors.get_tail_direction()
+        if len(self.snake_body) > 1: tail_dir_sensor = self.Sensors.get_tail_direction(self.tail_dir)
         else: tail_dir_sensor = np.array([0, 0, 0, 0])
 
-        return np.append(np.append(np.append(np.append(distance_sensor, apple_sensor, axis=0), snake_body_sensor, axis=0), head_dir_sensor, axis=0), tail_dir_sensor, axis=0)
+        return np.concatenate((distance_sensor, apple_sensor, snake_body_sensor, head_dir_sensor, tail_dir_sensor), axis=0)
     
     def select_random_action(self):
         list_of_action = np.array([0, 1, 2, 3])
         return np.random.choice(list_of_action, size=1)[0]
     
-    def pop_snake_tail(self):
-        if self.eaten_apples == len(self.snake_body)-1:
-            self.snake_body.pop(0)
-            self.reward = -1
-
-    def snake_move(self, direction):
+    def get_head_dir(self, direction):
         # snake can kill himself by going opposite direction
         if direction == 0:      # up
             self.head_dir = (0, -1)
@@ -119,15 +121,30 @@ class Environment:
             self.head_dir = (0, 1)
         elif direction == 3:    # left
             self.head_dir = (-1, 0)
+    
+    def get_tail_dir(self):
+        if len(self.snake_body) > 1:
+            self.tail_dir = tuple((np.array([self.snake_body[1][0], self.snake_body[1][1]] \
+                 - np.array([self.snake_body[0][0], self.snake_body[0][1]]))).reshape(1, -1)[0])
+    
+    def pop_snake_tail(self):
+        if self.eaten_apples == len(self.snake_body)-1:
+            self.snake_body.pop(0)
+            self.reward = -1
+
+    def snake_move(self, direction):
         """
         Algorithm: add new part before head in corresponding direction and delete tail
         """
+        self.get_head_dir(direction)
         head = self.snake_body[-1]
         self.snake_body.append((head[0]+self.head_dir[0], head[1]+self.head_dir[1]))
+        # deletng tail is handled in collision_with_apple() with getting tail direction
 
         self.steps += 1
     
     def action(self, act):
+        if self.done == True: self.restart_game()
         self.snake_move(act)
         self.collision_with_self()
         self.collision_with_boundaries()
