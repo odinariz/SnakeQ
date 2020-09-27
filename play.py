@@ -1,6 +1,6 @@
 import numpy as np
 
-import parameters as p
+import parameters as par
 import environment
 import snake_sensors
 import DQNAgent
@@ -9,21 +9,11 @@ import DQNAgent
 
 if __name__ == "__main__":
 
+    env = environment.Environment(par.row)
+    buffer = DQNAgent.ExperienceBuffer(par.REPLAY_SIZE)
     net = DQNAgent.Neural_Network()
-    agent = DQNAgent.QAgent(net)
-    env = environment.Environment(p.row)
+    dqn_agent = DQNAgent.DQN(env, buffer, net, load=False)
 
     print("List of directions: 0=up; 1=right; 2=down; 3=left")
 
-    # build testing console game
-    while True:
-        print(env.board)
-
-        direction = int(input("Direction: "))
-        state, reward, done, info = env.action(direction)
-        print("states", state)
-        print("reward", reward)
-
-        if env.done == True:
-            print("Game Over!")
-            break
+    dqn_agent.simulate(print_board=True)
