@@ -1,7 +1,7 @@
 import numpy as np
 
 class SnakeSensors:
-    def __init__(self, x, board_info):
+    def __init__(self, x, board_info, moves):
         """
         Return array where are saved all information about snake and his sensors,
         which will get pass to agent through neural network for choosing action
@@ -15,11 +15,12 @@ class SnakeSensors:
         """
         self.dis = x    # row/x/distance
         self.target = board_info
+        self.moves = moves
     
     def update_sensor_board(self, board, apple, snake):
         self.board = board
         self.apple_pos = apple
-        self.head_x, self.head_y = snake[-1]
+        self.head_y, self.head_x = snake[-1]
 
         # distance to boundaries in 4 dimensions
         self.dis_y_down = self.dis - self.head_y - 1    # -1 because grid is from 0 to boundary
@@ -109,13 +110,13 @@ class SnakeSensors:
         return self.all_eight_directions(self.target["snake"]) # skip snake head
     
     def get_head_direction(self, head_dir):
-        if head_dir == (0, -1): return np.array([1, 0, 0, 0])   # up
-        elif head_dir == (1, 0): return np.array([0, 1, 0, 0])  # right
-        elif head_dir == (0, 1): return np.array([0, 0, 1, 0])  # down
-        elif head_dir == (-1, 0): return np.array([0, 0, 0, 1]) # left
+        if np.array_equal(head_dir, self.moves["up"]): return np.array([1, 0, 0, 0])   # up
+        elif np.array_equal(head_dir, self.moves["right"]): return np.array([0, 1, 0, 0])  # right
+        elif np.array_equal(head_dir, self.moves["down"]): return np.array([0, 0, 1, 0])  # down
+        elif np.array_equal(head_dir, self.moves["left"]): return np.array([0, 0, 0, 1]) # left
     
     def get_tail_direction(self, tail_dir):
-        if tail_dir == (0, -1): return np.array([1, 0, 0, 0])  # up
-        elif tail_dir == (1, 0): return np.array([0, 1, 0, 0]) # right
-        elif tail_dir == (0, 1): return np.array([0, 0, 1, 0]) # down
-        elif tail_dir == (-1, 0): return np.array([0, 0, 0, 1])# left
+        if np.array_equal(tail_dir, self.moves["up"]): return np.array([1, 0, 0, 0])  # up
+        elif np.array_equal(tail_dir, self.moves["right"]): return np.array([0, 1, 0, 0]) # right
+        elif np.array_equal(tail_dir, self.moves["down"]): return np.array([0, 0, 1, 0]) # down
+        elif np.array_equal(tail_dir, self.moves["left"]): return np.array([0, 0, 0, 1])# left

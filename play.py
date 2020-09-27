@@ -21,7 +21,8 @@ if __name__ == "__main__":
 
         direction = int(input("Direction: "))
         state, reward, done, info = env.action(direction)
-        print(state)
+        print("states", state)
+        print("reward", reward)
 
         if env.done == True:
             print("Game Over!")

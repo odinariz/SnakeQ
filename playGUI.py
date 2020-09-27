@@ -1,7 +1,7 @@
-import numpy as np
-import sys
 from PyQt5 import QtGui, QtCore, QtWidgets
 from PyQt5.QtCore import Qt
+import sys
+import numpy as np
 
 import parameters as p
 import environment

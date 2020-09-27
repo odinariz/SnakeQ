@@ -13,5 +13,6 @@ width_height = 600
 row = width_height // pixel
 fps = 200
 
+# Widgets
 MainWidgetSize = (0, 0, 1000, 1000)
 EnvWidgetSize = (0, 0, 600, 600)
