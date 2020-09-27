@@ -103,7 +103,13 @@ class DQN(Agent):
     def load(self):
         self.net.load_state_dict(torch.load("save_model/net.dat"))
         self.target_net.load_state_dict(torch.load("save_model/target_net.dat"))
-        # Note: add loading of epsilon
+        # Note: add loading of epsilon and rest
+    
+    def save(self):
+        torch.save(self.net.state_dict(), "save_model/net.dat")
+        torch.save(self.net.state_dict(), "save_model/target_net.dat")
+        # Note: add saving of epsilon and rest
+
     
     def select_device(self):
         if torch.cuda.is_available():
@@ -145,8 +151,7 @@ class DQN(Agent):
                 print("%d: done %d games, mean reward %.3f, eps %.2f" % (self.index, len(self.total_rewards), mean_reward, self.epsilon))
 
                 if self.best_mean_reward is None or self.best_mean_reward < mean_reward:
-                    torch.save(self.net.state_dict(), "save_model/net.dat")
-                    torch.save(self.net.state_dict(), "save_model/target_net.dat")
+                    self.save()
 
                     if self.best_mean_reward is not None:
                         print("Best mean reward updated %.3f -> %.3f, model saved" % (self.best_mean_reward, mean_reward))
@@ -155,7 +160,7 @@ class DQN(Agent):
 
                 if self.env.game_info["won game"] == True:
                     print("Solved in %d frames!" % self.index)
-                    torch.save(self.net.state_dict(), "save_model/net.dat")
+                    self.save()
                     break
 
             if len(self.buffer) < par.REPLAY_START_SIZE:
