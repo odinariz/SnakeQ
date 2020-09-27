@@ -17,15 +17,14 @@ MainWidgetSize = (0, 0, 1000, 1000)
 EnvWidgetSize = (0, 0, 600, 600)
 
 # Neural Network and Q-learning
-MEAN_REWARD_BOUND = 19.5
-
-GAMMA = 0.99
+GAMMA = 0.99  # discount
 BATCH_SIZE = 32
 REPLAY_SIZE = 10000
 LEARNING_RATE = 1e-4
 SYNC_TARGET_LOOPS = 1000
 REPLAY_START_SIZE = 10000
 
+# epsilon -> chance for random action
 EPSILON_DECAY_LAST_FRAME = 10**5
 EPSILON_START = 1.0
 EPSILON_FINAL = 0.02

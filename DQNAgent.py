@@ -98,6 +98,8 @@ class DQN(Agent):
         self.index = 0
         self.epsilon = par.EPSILON_START
 
+        self.agent_info = {}
+
         if load == True: self.load()
 
     def load(self):
@@ -137,7 +139,7 @@ class DQN(Agent):
         expected_state_action_values = next_state_values * par.GAMMA + rewards_v
         return self.net.loss_f(state_action_values, expected_state_action_values)
     
-    def simulate(self, print_board=False):
+    def simulate(self, print_info=True, print_board=False):
         while True:
             if print_board: print(self.env.board)
             self.index += 1
@@ -147,16 +149,16 @@ class DQN(Agent):
 
             if reward is not None:
                 self.total_rewards.append(reward)
-                mean_reward = np.mean(self.total_rewards[-100:])
-                print("%d: done %d games, mean reward %.3f, eps %.2f" % (self.index, len(self.total_rewards), mean_reward, self.epsilon))
-
-                if self.best_mean_reward is None or self.best_mean_reward < mean_reward:
+                self.mean_reward = np.mean(self.total_rewards[-100:])
+                
+                if self.best_mean_reward is None or self.best_mean_reward < self.mean_reward:
                     self.save()
 
                     if self.best_mean_reward is not None:
-                        print("Best mean reward updated %.3f -> %.3f, model saved" % (self.best_mean_reward, mean_reward))
-                    
-                    self.best_mean_reward = mean_reward
+                        self.agent_info = {"epsilon": self.epsilon, "mean reward": self.mean_reward, "done n of games": (self.index, len(self.total_rewards))}
+                        if print_info == True: print(self.agent_info)
+                        
+                    self.best_mean_reward = self.mean_reward
 
                 if self.env.game_info["won game"] == True:
                     print("Solved in %d frames!" % self.index)

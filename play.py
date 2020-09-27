@@ -16,4 +16,5 @@ if __name__ == "__main__":
 
     print("List of directions: 0=up; 1=right; 2=down; 3=left")
 
-    dqn_agent.simulate(print_board=True)
+    while True:
+        dqn_agent.simulate(print_info=True, print_board=True)
