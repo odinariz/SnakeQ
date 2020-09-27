@@ -52,20 +52,21 @@ class ExperienceBuffer:
 
 class Agent:
     def __init__(self, env, buffer):
-        self.env = env
+        self.env_list = env if type(env) is type([]) else [env] 
         self.buffer = buffer
         self.Experience = collections.namedtuple('Experience', field_names=['state', 'action', 'reward', 'done', 'new_state'])
-        self._reset()
+        for env_ in self.env_list:
+            self._reset(env_)
 
-    def _reset(self):
-        self.state = self.env.restart_env()
+    def _reset(self, env):
+        self.state = env.restart_env()
         self.total_reward = 0.0
 
-    def play_step(self, net, epsilon=0.0, device="cpu"):
+    def play_step(self, net, env, epsilon=0.0, device="cpu"):
         done_reward = None
 
         if np.random.random() < epsilon:
-            act = self.env.select_random_action()
+            act = env.select_random_action()
         else:
             state_a = np.array([self.state], copy=False)
             state_v = torch.from_numpy(state_a).float().to(device)
@@ -74,7 +75,7 @@ class Agent:
             act = int(act_v.item())
 
         # do step in the environment
-        new_state, reward, is_done, _ = self.env.action(act)
+        new_state, reward, is_done, _ = env.action(act)
         self.total_reward += reward
 
         exp = self.Experience(self.state, act, reward, is_done, new_state)
@@ -82,7 +83,7 @@ class Agent:
         self.state = new_state
         if is_done:
             done_reward = self.total_reward
-            self._reset()
+            self._reset(env)
         return done_reward
 
 class DQN(Agent):
@@ -140,12 +141,15 @@ class DQN(Agent):
         return self.net.loss_f(state_action_values, expected_state_action_values)
     
     def simulate(self, print_info=True, print_board=False):
-        while True:
-            if print_board: print(self.env.board)
+        for env_idx, env in enumerate(self.env_list):
+            if print_board: 
+                print(env_idx)
+                print(env.board)
+
             self.index += 1
             self.epsilon = max(par.EPSILON_FINAL, par.EPSILON_START - self.index / par.EPSILON_DECAY_LAST_FRAME)
 
-            reward = self.play_step(self.net, self.epsilon, device=self.device)
+            reward = self.play_step(self.net, env, self.epsilon, device=self.device)
 
             if reward is not None:
                 self.total_rewards.append(reward)
@@ -155,12 +159,12 @@ class DQN(Agent):
                     self.save()
 
                     if self.best_mean_reward is not None:
-                        self.agent_info = {"epsilon": self.epsilon, "mean reward": self.mean_reward, "done n of games": (self.index, len(self.total_rewards))}
+                        self.agent_info = {"env id": env_idx, "epsilon": self.epsilon, "mean reward": self.mean_reward, "done n of games": (self.index, len(self.total_rewards))}
                         if print_info == True: print(self.agent_info)
-                        
+
                     self.best_mean_reward = self.mean_reward
 
-                if self.env.game_info["won game"] == True:
+                if env.game_info["won game"] == True:
                     print("Solved in %d frames!" % self.index)
                     self.save()
                     break
