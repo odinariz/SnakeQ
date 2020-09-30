@@ -10,6 +10,7 @@ class SetUp:
     def __init__(self):
         super().__init__()
         self.width = par.app_width
+        self.width_plus = 200
         self.height = par.app_height
         self.sensor_space = self.width - self.height
         self.sensor_n_row = self.sensor_space // 3
@@ -35,15 +36,16 @@ class SetUp:
         self.BLUE = par.BLUE
         self.BLUE2 = par.BLUE2
 
+
+
 class DrawSensors(SetUp):
     def __init__(self):
         super().__init__()
-        self.screen = pygame.display.set_mode((par.app_width, par.app_height))
+        self.screen = pygame.display.set_mode((par.app_width+self.width_plus, par.app_height))
     
-    def reshuffle_state(self, state, range_):
-        # to get specific part and reshuffle it for 
-        state_ = state[range_[0]: range_[1]]
-        return [state_[7], state_[0], state_[1], state_[6], 0, state_[2], state_[5], state_[4], state_[3]]
+    def reshuffle_state(self, state):
+        # reshaffle for 3x3 grid loop logic
+        return [state[7], state[0], state[1], state[6], 0, state[2], state[5], state[4], state[3]]
 
     def draw_distance(self, state):
         state = [x*255 for x in state]
@@ -61,7 +63,7 @@ class DrawSensors(SetUp):
         pygame.display.update(distance_list)
 
     def draw_apple(self, state):
-        state_ = self.reshuffle_state(state, range_=(4, 12))
+        state_ = self.reshuffle_state(state)
         see_apple_list = []
 
         index = 0
@@ -78,7 +80,7 @@ class DrawSensors(SetUp):
         pygame.display.update(see_apple_list)
 
     def draw_see_self(self, state):
-        state_ = self.reshuffle_state(state, range_=(12, 20))
+        state_ = self.reshuffle_state(state)
         see_self_list = []
 
         index = 0
@@ -94,12 +96,16 @@ class DrawSensors(SetUp):
                 index += 1
         pygame.display.update(see_self_list)
 
+
+
 class DrawWindow(DrawSensors):
     def __init__(self):
         super().__init__()
+        self.text_strings = ["Score:", "Generation:", "Steps:", "Epsilon:"]
+        self.text_range = 30
     
     def draw_sensor_bg(self):
-        pygame.display.update(pygame.draw.rect(self.screen, self.APP_BG, (self.height+1, 0, self.width, self.height)))
+        pygame.display.update(pygame.draw.rect(self.screen, self.APP_BG, (self.height+1, 0, self.width+self.width_plus, self.height)))
 
     def draw_board(self, board):
         rects = []
@@ -115,15 +121,22 @@ class DrawWindow(DrawSensors):
                     rects.append(pygame.draw.rect(self.screen, self.APPLE_C, (x*self.pixel, y*self.pixel, self.pixel-5, self.pixel-5)))
         pygame.display.update(rects)
 
-    def draw_lines(self):
-        lines = []
-        for i in range(0, self.height, self.pixel):
-            lines.append(pygame.draw.line(self.screen, self.BLACK, (i, 0),(i, self.height)))
-            lines.append(pygame.draw.line(self.screen, self.BLACK, (0, i),(self.height, i)))
-        pygame.display.update(lines)
-
     def draw_sensors(self, state):
         self.draw_distance(state[0:4])
+        self.draw_apple(state[4:12])
+        self.draw_see_self(state[12:20])
+    
+    def draw_text(self, text_list):
+        myfont = pygame.font.SysFont("freesansbold.ttf", 32)
+        for index in range(4):
+            textsurface = myfont.render(f"{self.text_strings[index]}", False, self.BLACK)
+            textRect = textsurface.get_rect()
+            textRect.center = (self.width-(self.width_plus//2)+self.width_plus, self.text_range*index*3+self.text_range*2) 
+            self.screen.blit(textsurface, textRect)
+
+            textsurface2 = myfont.render(f"{round(text_list[index], 2)}", False, self.BLACK)
+            self.screen.blit(textsurface2, (textRect.center[0]-5, textRect.center[1]+self.text_range-10))
+        pygame.display.flip()
 
 def check_speed():
     global speed_up, time_delay, time_tick
@@ -141,6 +154,7 @@ def check_speed():
 
 if __name__ == "__main__":
     pygame.init()
+    pygame.font.init()
 
     env = environment.Environment(par.row)
     buffer = DQNAgent.ExperienceBuffer(par.REPLAY_SIZE)
@@ -162,16 +176,15 @@ if __name__ == "__main__":
             check_speed()
 
         dqn_agent.simulate()
-        board, state, epsilon, mean_reward, steps, generations, score, game_info = dqn_agent.api(index=0)
+        board, state, epsilon, mean_reward, steps, generation, score, game_info = dqn_agent.api(index=0)
         board, state = board.tolist(), state.tolist()
 
-        pygame.display.set_caption(f"SnakeQ   Score: {score-1}   Generations: {generations}    Steps: {steps}    Mean reward: {mean_reward}   Epsilon: {epsilon}")
+        pygame.display.set_caption(f"SnakeQ   Score: {score-1}   Generation: {generation}    Steps: {steps}    Epsilon: {epsilon}")
 
         win.draw_sensor_bg()
         win.draw_sensors(state)
-        win.draw_apple(state)
-        win.draw_see_self(state)
         win.draw_board(board)
+        win.draw_text([score, generation, steps, epsilon])
 
         if game_info == True:
             print("finished")
