@@ -69,7 +69,7 @@ class Agent:
             act = env.select_random_action()
         else:
             state_a = np.array([self.state], copy=False)
-            state_v = torch.from_numpy(state_a).float().to(device)
+            state_v = torch.from_numpy(state_a).to(device, dtype=torch.float32)
             q_vals_v = net.forward(state_v)
             _, act_v = torch.max(q_vals_v, dim=1)
             act = int(act_v.item())
@@ -81,6 +81,7 @@ class Agent:
         exp = self.Experience(self.state, act, reward, is_done, new_state)
         self.buffer.append(exp)
         self.state = new_state
+
         if is_done:
             done_reward = self.total_reward
             self._reset(env)
@@ -118,7 +119,7 @@ class DQN(Agent):
         return self.env_list[index].board
     
     def api(self, index=0):
-        return (self.env_list[index].board, self.env_list[index].get_state(), self.epsilon, self.mean_reward, self.env_list[index].steps, self.env_list[index].count_deaths, self.env_list[index].eaten_apples, self.env_list[index].game_info)
+        return (self.env_list[index].board, self.env_list[index].state, self.epsilon, self.mean_reward, self.env_list[index].steps, self.env_list[index].count_deaths, self.env_list[index].eaten_apples, self.env_list[index].game_info)
     
     def select_device(self):
         if torch.cuda.is_available():
@@ -129,11 +130,10 @@ class DQN(Agent):
     def calc_loss(self, batch, device="cpu"):
         states, actions, rewards, dones, next_states = batch
 
-        states_v = torch.tensor(states).float().to(device)
-        next_states_v = torch.tensor(next_states).float().to(device)
-        actions_v = torch.tensor(actions).to(device)
-        actions_v = actions_v.to(dtype=torch.int64)
-        rewards_v = torch.tensor(rewards).float().to(device)
+        states_v = torch.tensor(states).to(device, dtype=torch.float32)
+        next_states_v = torch.tensor(next_states).to(device, dtype=torch.float32)
+        actions_v = torch.tensor(actions).to(device, dtype=torch.int64)
+        rewards_v = torch.tensor(rewards).to(device, dtype=torch.float32)
         done_mask = torch.ByteTensor(dones).to(device)
         done_mask = done_mask.to(torch.bool)
 

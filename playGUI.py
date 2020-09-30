@@ -135,7 +135,9 @@ class DrawWindow(DrawSensors):
             self.screen.blit(textsurface, textRect)
 
             textsurface2 = myfont.render(f"{round(text_list[index], 2)}", False, self.BLACK)
-            self.screen.blit(textsurface2, (textRect.center[0]-5, textRect.center[1]+self.text_range-10))
+            textRect2 = textsurface2.get_rect()
+            textRect2.center = (self.width-(self.width_plus//2)+self.width_plus, self.text_range*index*3+self.text_range*2) 
+            self.screen.blit(textsurface2, (textRect2.center[0]-10, textRect2.center[1]+self.text_range-10))
         pygame.display.flip()
 
 def check_speed():
@@ -178,8 +180,9 @@ if __name__ == "__main__":
         dqn_agent.simulate()
         board, state, epsilon, mean_reward, steps, generation, score, game_info = dqn_agent.api(index=0)
         board, state = board.tolist(), state.tolist()
+        score -= 1
 
-        pygame.display.set_caption(f"SnakeQ   Score: {score-1}   Generation: {generation}    Steps: {steps}    Epsilon: {epsilon}")
+        pygame.display.set_caption(f"SnakeQ by ludius0        Score: {score}   Generation: {generation}    Steps: {steps}    Epsilon: {epsilon}")
 
         win.draw_sensor_bg()
         win.draw_sensors(state)

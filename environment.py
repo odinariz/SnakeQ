@@ -3,19 +3,20 @@ import random
 
 import snake_sensors
 
-class Environment:
+class Environment():
     def __init__(self, n_row):
         # parameters
         self.board_info = {"empty": 0, "snake": 1, "apple": 2}
         # (y, x)
         self.moves = {"up": np.array([-1, 0]), "right": np.array([0, 1]), "down": np.array([1, 0]), "left": np.array([0, -1])}
-        self.reward_dict = {"hit self": -100, "hit boundary": -100, "eat apple": 30, "step": -1, "win game": 100}
-        self.count_deaths = 0
+        self.reward_dict = {"hit self": -100, "hit boundary": -100, "eat apple": 100, "step": -1, "see apple": 2, "a lot of steps": -50, "win game": 100}
+        self.count_deaths = -3
         # Snake sensors for returning state (all logic)
         self.Sensors = snake_sensors.SnakeSensors(n_row, self.board_info, self.moves)
 
         # Generate components
         self.x = n_row
+        self.reward = 0   # reward based on every action and its consequences
         self.restart_env()
     
     def generate_grid(self):
@@ -29,6 +30,7 @@ class Environment:
 
         self.board[y, x] = 1
         self.snake_body = np.array([[y, x]])
+
 
     def generate_apple(self):
         # Randomly generate apple (if there isn't already body of snake)
@@ -69,9 +71,10 @@ class Environment:
         self.get_tail_dir()
 
     def check_steps(self):
-        # If taken (row*4) or more steps until apple is eaten -> game over
-        if self.steps > self.x*4:
+        # If taken (row*row) or more steps until apple is eaten -> game over
+        if self.steps > (self.x*self.x//2):
             self.done = True
+            self.reward = self.reward_dict["a lot of steps"]
     
     def check_for_end(self):
         # return True if snake filled whole board else False
@@ -86,16 +89,18 @@ class Environment:
         self.none = None
         self.head_dir = self.none       # direction of head of snake
         self.steps = 0                  # every action untill apple is eaten
-        self.reward = 0                 # reward based on every action and its consequences
         self.done = False               # if env/game is finished
         self.game_info = {"won game": False} # info about state of game
+        self.count_deaths += 1          # Count generations
 
         # Generate game grid
         self.generate_grid()
         self.generate_snake()
         self.generate_apple()
-        
-        return self.get_state(), self.reward, self.done, self.game_info
+
+        self.check_state()
+
+        return self.state
 
     def update_board(self):
         # refresh board; write on board snake and apple
@@ -105,7 +110,7 @@ class Environment:
         
         self.board[self.apple_pos[0], self.apple_pos[1]] = 2
 
-    def get_state(self):
+    def check_state(self):
         self.Sensors.update_sensor_board(self.board, self.apple_pos, self.snake_body)
         distance_sensor = self.Sensors.distance_to_wall()
         apple_sensor = self.Sensors.see_apple()
@@ -116,28 +121,35 @@ class Environment:
         if len(self.snake_body) > 1: tail_dir_sensor = self.Sensors.get_tail_direction(self.tail_dir)
         else: tail_dir_sensor = np.array([0, 0, 0, 0])
 
-        return np.concatenate((distance_sensor, apple_sensor, snake_body_sensor, head_dir_sensor, tail_dir_sensor), axis=0)
+        self.state = np.concatenate((distance_sensor, apple_sensor, snake_body_sensor, head_dir_sensor, tail_dir_sensor), axis=0)
     
     def select_random_action(self):
         list_of_action = np.array([0, 1, 2, 3])
         return np.random.choice(list_of_action, size=1)[0]
     
     def get_head_dir(self, direction):
-        # snake can kill himself by going opposite direction
-        if direction == 0:      self.head_dir = self.moves["up"]
-        elif direction == 1:    self.head_dir = self.moves["right"]
-        elif direction == 2:    self.head_dir = self.moves["down"]
-        elif direction == 3:    self.head_dir = self.moves["left"]
+        # snake cannot kill himself by going opposite direction
+        if direction == 0 and direction != 2:      self.head_dir = self.moves["up"]
+        elif direction == 1 and direction != 3:    self.head_dir = self.moves["right"]
+        elif direction == 2 and direction != 0:    self.head_dir = self.moves["down"]
+        elif direction == 3 and direction != 1:    self.head_dir = self.moves["left"]
     
     def get_tail_dir(self):
         if len(self.snake_body) > 1:
             self.tail_dir = tuple((np.array([self.snake_body[1, 0], self.snake_body[1, 1]] \
                  - np.array([self.snake_body[0, 0], self.snake_body[0, 1]]))).reshape(1, -1)[0])
     
+    def reward_for_steps(self):
+        # if snake see apple, than get reward otherwise is punished
+        if 1 in self.state[4:12]:
+            self.reward = self.reward_dict["see apple"]
+        else:
+            self.reward = self.reward_dict["step"]
+    
     def pop_snake_tail(self):
         if self.eaten_apples == len(self.snake_body)-1 and self.done == False:
             self.snake_body = np.delete(self.snake_body, 0, 0)
-            self.reward = self.reward_dict["step"]
+            self.reward_for_steps()
 
     def snake_move(self, direction):
         """
@@ -152,15 +164,22 @@ class Environment:
         self.steps += 1
     
     def action(self, act):
-        if self.done == True: self.restart_env()
+        # Set up
+        self.reward = 0
+        if self.done == True: 
+            self.restart_env()
+
+        # Check game logic
         self.snake_move(act)
         self.collision_with_self()
-        self.collision_with_boundaries()
         self.collision_with_apple()
+        self.collision_with_boundaries()
         self.check_steps()
         self.check_for_end()
-        if self.done == False: self.update_board()
-        else: 
-            self.restart_env()
-            self.count_deaths += 1
-        return self.get_state(), self.reward, self.done, self.game_info
+
+        # Update
+        if self.done == False: 
+            self.update_board()
+            self.check_state()
+
+        return self.state, self.reward, self.done, self.game_info
