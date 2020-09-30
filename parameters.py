@@ -1,15 +1,27 @@
 # COLORS
 SNAKE_C = (209, 204, 192)
-APPLE_C = (255, 177, 66)
+APPLE_C = (192, 57, 43) #(255, 195, 18) #(255, 177, 66)
 BG = (44, 44, 84) # background
+APP_BG = (240, 240, 240)
 GRID_BG = (44, 44, 84)
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
+GREY = (113, 128, 147)
+GREY2 = (189, 195, 199)
+GREY3 = (87, 96, 111)
+GREY4 = (53, 59, 72)
+RED = (229, 57, 53)
+GREEN = (32, 191, 107)
+ORANGE = (250, 130, 49)
+BLUE = (7, 153, 146)
+BLUE2 = (30, 55, 153)
 
 # GUI and ENV (*Numbers have to be rounded)
 pixel = 100
-width_height = 300
-row = width_height // pixel
+width_height = 800
+app_width = 800
+app_height = 600
+row = 10
 fps = 200
 
 # Widgets

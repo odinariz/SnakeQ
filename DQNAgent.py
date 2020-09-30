@@ -96,6 +96,7 @@ class DQN(Agent):
 
         self.total_rewards = []
         self.best_mean_reward = None
+        self.mean_reward = None
         self.index = 0
         self.epsilon = par.EPSILON_START
 
@@ -113,6 +114,11 @@ class DQN(Agent):
         torch.save(self.net.state_dict(), "save_model/target_net.dat")
         # Note: add saving of epsilon and rest
 
+    def return_env(self, index=0):
+        return self.env_list[index].board
+    
+    def api(self, index=0):
+        return (self.env_list[index].board, self.env_list[index].get_state(), self.epsilon, self.mean_reward, self.env_list[index].steps, self.env_list[index].count_deaths, self.env_list[index].eaten_apples, self.env_list[index].game_info)
     
     def select_device(self):
         if torch.cuda.is_available():
@@ -176,7 +182,7 @@ class DQN(Agent):
             if self.index % par.SYNC_TARGET_LOOPS == 0:
                 self.target_net.load_state_dict(self.net.state_dict())
 
-            # Calculate loss of NN
+            # Calculate loss of NN and train it
             self.net.optimizer.zero_grad()
             batch = self.buffer.sample(par.BATCH_SIZE)
             loss_t = self.calc_loss(batch, device=self.device)

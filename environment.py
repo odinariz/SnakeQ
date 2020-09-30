@@ -4,17 +4,18 @@ import random
 import snake_sensors
 
 class Environment:
-    def __init__(self, row):
+    def __init__(self, n_row):
         # parameters
         self.board_info = {"empty": 0, "snake": 1, "apple": 2}
         # (y, x)
         self.moves = {"up": np.array([-1, 0]), "right": np.array([0, 1]), "down": np.array([1, 0]), "left": np.array([0, -1])}
         self.reward_dict = {"hit self": -100, "hit boundary": -100, "eat apple": 30, "step": -1, "win game": 100}
+        self.count_deaths = 0
         # Snake sensors for returning state (all logic)
-        self.Sensors = snake_sensors.SnakeSensors(row, self.board_info, self.moves)
+        self.Sensors = snake_sensors.SnakeSensors(n_row, self.board_info, self.moves)
 
         # Generate components
-        self.x = row
+        self.x = n_row
         self.restart_env()
     
     def generate_grid(self):
@@ -45,7 +46,6 @@ class Environment:
         if self.eaten_apples+1 != len(self.snake_body.astype(set)):
             self.done = True
             self.reward = self.reward_dict["hit self"]
-            print("Collision with self")
     
     def collision_with_boundaries(self):
         # if snake go beyond board; game over
@@ -53,7 +53,6 @@ class Environment:
             or (self.snake_body[-1, 1] < 0 or self.snake_body[-1, 1] >= self.x) == True:
             self.done = True
             self.reward = self.reward_dict["hit boundary"]
-            print("Collision with boundaries")
 
     def collision_with_apple(self):
         # Add another body to snake and generate another apple
@@ -65,7 +64,6 @@ class Environment:
             self.check_for_end()
             if self.done == False: 
                 self.generate_apple()
-            print("Collision with apple")
         else:
             self.pop_snake_tail()
         self.get_tail_dir()
@@ -73,8 +71,6 @@ class Environment:
     def check_steps(self):
         # If taken (row*4) or more steps until apple is eaten -> game over
         if self.steps > self.x*4:
-            print("a lot of steps")
-            print(self.eaten_apples)
             self.done = True
     
     def check_for_end(self):
@@ -164,5 +160,7 @@ class Environment:
         self.check_steps()
         self.check_for_end()
         if self.done == False: self.update_board()
-        else: self.restart_env()
+        else: 
+            self.restart_env()
+            self.count_deaths += 1
         return self.get_state(), self.reward, self.done, self.game_info
