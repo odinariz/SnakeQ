@@ -56,8 +56,8 @@ class Environment():
     
     def collision_with_boundaries(self):
         # if snake go beyond board; game over
-        if (self.snake_body[-1, 0] < 0 or self.snake_body[-1, 0] >= self.x) == True \
-            or (self.snake_body[-1, 1] < 0 or self.snake_body[-1, 1] >= self.x) == True:
+        if (self.snake_body[-1, 0] < 0 or self.snake_body[-1, 0] >= self.x) \
+            or (self.snake_body[-1, 1] < 0 or self.snake_body[-1, 1] >= self.x):
             self.done = True
             self.reward = self.reward_dict["hit boundary"]
 
@@ -69,7 +69,7 @@ class Environment():
             self.steps = 0
 
             self.check_for_end()
-            if self.done == False: 
+            if not self.done: 
                 self.generate_apple()
         else:
             self.pop_snake_tail()
@@ -157,7 +157,7 @@ class Environment():
             self.reward = self.reward_dict["step"]
     
     def pop_snake_tail(self):
-        if self.eaten_apples == len(self.snake_body)-1 and self.done == False:
+        if self.eaten_apples == len(self.snake_body)-1 and not self.done:
             self.snake_body = np.delete(self.snake_body, 0, 0)
             self.reward_for_steps()
 
@@ -176,7 +176,7 @@ class Environment():
     def action(self, act):
         # Set up
         self.reward = 0
-        if self.done == True: 
+        if self.done: 
             self.restart_env()
 
         # Check game logic
@@ -188,7 +188,7 @@ class Environment():
         self.check_for_end()
 
         # Update
-        if self.done == False: 
+        if not self.done: 
             self.update_board()
             self.check_state()
 

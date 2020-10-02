@@ -16,15 +16,17 @@ class Neural_Network(nn.Module):
             [0: up    1: right    2: down    3: left] -> 4 elements
         """
         # Neural Network
-        self.layer_neurons = {"Input Size": 28, "First Hidden Layer": 20, "Second Hidden Layer": 12, "Output Size": 4}
+        self.layer_neurons = {"Input Size": 28, "First Hidden Layer": 32, "Second Hidden Layer": 16, "Output Size": 4}
         self.activation_function = {"ReLU": nn.ReLU(), "Sigmoid": nn.Sigmoid()}
         
         self.model = nn.Sequential(
-            nn.Linear(input_size, 20),
+            nn.Linear(input_size, 32),
             nn.ReLU(),
-            nn.Linear(20, 12),
+            nn.Linear(32, 16),
             nn.ReLU(),
-            nn.Linear(12, 4),
+            nn.Linear(16, 8),
+            nn.ReLU(),
+            nn.Linear(8, 4),
             nn.Sigmoid()
         )
 

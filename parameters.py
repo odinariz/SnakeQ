@@ -21,7 +21,8 @@ pixel = 100
 width_height = 800
 app_width = 800
 app_height = 600
-row = 10
+train_height = 500
+row = 8
 fps = 200
 
 # Widgets
@@ -30,7 +31,7 @@ EnvWidgetSize = (0, 0, 600, 600)
 
 # Neural Network and Q-learning
 GAMMA = 0.99  # discount
-BATCH_SIZE = 32
+BATCH_SIZE = 64
 REPLAY_SIZE = 10000
 LEARNING_RATE = 0.02 #1e-4
 SYNC_TARGET_LOOPS = 1000
