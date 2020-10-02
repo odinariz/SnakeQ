@@ -91,10 +91,11 @@ class DQN(Agent):
     def __init__(self, env, buffer, net, load):
         super().__init__(env, buffer)
         self.device = self.select_device()
-
+        # Netwroks
         self.net = Neural_Network().to(self.device)
         self.target_net = Neural_Network().to(self.device)
 
+        # parameters
         self.total_rewards = []
         self.best_mean_reward = None
         self.mean_reward = None
@@ -103,6 +104,7 @@ class DQN(Agent):
 
         self.agent_info = {}
 
+        # loading sequence
         if load == True: self.load()
 
     def load(self):
