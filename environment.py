@@ -9,7 +9,7 @@ class Environment():
         self.board_info = {"empty": 0, "snake": 1, "apple": 2}
         # (y, x)
         self.moves = {"up": np.array([-1, 0]), "right": np.array([0, 1]), "down": np.array([1, 0]), "left": np.array([0, -1])}
-        self.reward_dict = {"hit self": -100, "hit boundary": -100, "eat apple": 100, "step": -1, "see apple": 2, "a lot of steps": -50, "win game": 100}
+        self.reward_dict = {"hit self": -100, "hit boundary": -100, "eat apple": 150, "step": -1, "see apple": 2, "a lot of steps": -50, "win game": 100}
         self.count_deaths = -2
         # Snake sensors for returning state (all logic)
         self.Sensors = snake_sensors.SnakeSensors(n_row, self.board_info, self.moves)

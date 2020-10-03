@@ -98,7 +98,7 @@ class DrawSensors(SetUp):
 class DrawWindow(DrawSensors):
     def __init__(self):
         super().__init__()
-        self.text_strings = ["Score:", "Generation:", "Steps:", "Epsilon:", "Mean Reward:"]
+        self.text_strings = ["Score:", "Episode:", "Generation:", "Steps:", "Epsilon:", "Mean Reward:"]
         self.text_range = 30
     
     def draw_sensor_bg(self):
@@ -159,7 +159,7 @@ if __name__ == "__main__":
     env = environment.Environment(par.row)
     buffer = DQNAgent.ExperienceBuffer(par.REPLAY_SIZE)
     net = DQNAgent.Neural_Network()
-    dqn_agent = DQNAgent.DQN(env, buffer, net, load=False)
+    dqn_agent = DQNAgent.DQN(env, buffer, net, load=True)
     win = DrawWindow()
 
     pygame.display.set_caption("SnakeQ by ludius0")
@@ -177,20 +177,21 @@ if __name__ == "__main__":
             check_speed()
 
         dqn_agent.simulate()
-        board, state, epsilon, mean_reward, steps, generation, score, game_info = dqn_agent.api(index=0)
+        board, state, epsilon, mean_reward, steps, generation, score, episode, game_info = dqn_agent.api()
         board, state = board.tolist(), state.tolist()
         score -= 3
 
-        pygame.display.set_caption(f"SnakeQ by ludius0        Score: {score}    Generation: {generation}    Steps: {steps}    Epsilon: {epsilon}    Train: {mean_reward}")
+        pygame.display.set_caption(f"SnakeQ by ludius0        Score: {score}    Episode: {episode}   \
+            Generation: {generation}    Steps: {steps}    Epsilon: {epsilon}    Mean Reward: {mean_reward}")
 
         win.draw_sensor_bg()
         win.draw_sensors(state)
         win.draw_board(board)
-        win.draw_text([score, generation, steps, epsilon, mean_reward])
+        win.draw_text([score, episode, generation, steps, epsilon, mean_reward])
 
         if game_info["won game"]:
-            input()
             print("finished")
+            input()
             break
 
     pygame.quit()

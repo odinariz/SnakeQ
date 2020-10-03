@@ -101,8 +101,9 @@ if __name__ == "__main__":
     clock = pygame.time.Clock()
     time_delay, time_tick = 120, 20
     speed_up = True
+    flag = True
 
-    while True:
+    while flag:
         # Pygame events and times
         pygame.time.delay(time_delay)
         clock.tick(time_tick)
@@ -120,12 +121,12 @@ if __name__ == "__main__":
 
             all_boards.append(board.tolist())
 
+            if game_info["won game"]:
+                flag = False
+                print("finished")
+
         win.draw_boards(all_boards)
         win.draw_lines()
-
-        if game_info["won game"]:
-            input()
-            print("finished")
-            break
-
+    
+    input()
     pygame.quit()
