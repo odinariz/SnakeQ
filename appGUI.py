@@ -132,6 +132,10 @@ def check_speed():
             time_delay, time_tick = 0, 0
             speed_up = True
             return
+        elif keys[pygame.K_i]:
+            time_delay, time_tick = 120, 60
+            speed_up = True
+            return
         elif keys[pygame.K_q]:
             dqn.save()
             print("Ai saved")
