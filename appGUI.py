@@ -1,44 +1,26 @@
 import pygame
 import numpy as np
 
-import parameters as par
+from parameters import *
 import environment
-import snake_sensors
-import DQNAgent
-
-# Colors
-SNAKE_C = par.SNAKE_C
-APPLE_C = par.APPLE_C
-BG = par.BG
-APP_BG = par.APP_BG
-GRID_BG = par.GRID_BG
-BLACK = par.BLACK
-WHITE = par.WHITE
-GREY = par.GREY
-GREY2 = par.GREY2
-GREY3 = par.GREY3
-GREY4 = par.GREY4
-RED = par.RED
-GREEN = par.GREEN
-ORANGE = par.ORANGE
-BLUE = par.BLUE
-BLUE2 = par.BLUE2
+import agent
+import q_learning
 
 class SetUp:
     def __init__(self):
         super().__init__()
-        self.width = par.app_width
+        self.width = APP_WIDTH
         self.width_plus = 200
-        self.height = par.app_height
+        self.height = APP_HEIGHT
         self.sensor_space = self.width - self.height
         self.sensor_n_row = self.sensor_space // 3
-        self.n_row = par.row
+        self.n_row = ROW
         self.pixel = self.height // self.n_row
 
 class DrawSensors(SetUp):
     def __init__(self):
         super().__init__()
-        self.screen = pygame.display.set_mode((par.app_width+self.width_plus, par.app_height))
+        self.screen = pygame.display.set_mode((APP_WIDTH+self.width_plus, APP_HEIGHT))
     
     def reshuffle_state(self, state):
         # reshaffle for 3x3 grid loop logic
@@ -98,13 +80,13 @@ class DrawSensors(SetUp):
 class DrawWindow(DrawSensors):
     def __init__(self):
         super().__init__()
-        self.text_strings = ["Score:", "Episode:", "Generation:", "Steps:", "Epsilon:", "Mean Reward:"]
+        self.text_strings = ["Score:", "Generation:", "Steps:", "Epsilon:", "Mean Reward:"]
         self.text_range = 30
     
     def draw_sensor_bg(self):
         pygame.display.update(pygame.draw.rect(self.screen, APP_BG, (self.height+1, 0, self.width+self.width_plus, self.height)))
 
-    def draw_board(self, board):
+    def draw_board(self, board, board_info):
         rects = []
         # draw background for game section
         rects.append(pygame.draw.rect(self.screen, BG, (0, 0, self.height+1, self.height+1)))
@@ -112,9 +94,9 @@ class DrawWindow(DrawSensors):
         # draw board
         for y, row in enumerate(board):
             for x, value in enumerate(row):
-                if value == 1:      # snake
+                if value == board_info["snake"]:      # snake
                     rects.append(pygame.draw.rect(self.screen, SNAKE_C, (x*self.pixel, y*self.pixel, self.pixel-5, self.pixel-5)))
-                elif value == 2:    # apple
+                elif value == board_info["apple"]:    # apple
                     rects.append(pygame.draw.rect(self.screen, APPLE_C, (x*self.pixel, y*self.pixel, self.pixel-5, self.pixel-5)))
         pygame.display.update(rects)
 
@@ -150,17 +132,24 @@ def check_speed():
             time_delay, time_tick = 0, 0
             speed_up = True
             return
-
+        elif keys[pygame.K_q]:
+            dqn_agent.save()
+            print("Ai saved")
+            return
 
 if __name__ == "__main__":
     pygame.init()
     pygame.font.init()
 
-    env = environment.Environment(par.row)
-    buffer = DQNAgent.ExperienceBuffer(par.REPLAY_SIZE)
-    net = DQNAgent.Neural_Network()
-    dqn_agent = DQNAgent.DQN(env, buffer, net, load=True)
+    net = q_learning.Neural_Network()
+    env = environment.Environment(ROW)
+    buffer = agent.ExperienceBuffer(REPLAY_SIZE)
+    agent = agent.Agent(env, buffer)
+    dqn = q_learning.DQN(net, buffer, agent, load=False)
     win = DrawWindow()
+
+    flag = True
+    count = 0
 
     pygame.display.set_caption("SnakeQ by ludius0")
     clock = pygame.time.Clock()
@@ -176,22 +165,24 @@ if __name__ == "__main__":
                 pygame.quit()
             check_speed()
 
-        dqn_agent.simulate()
-        board, state, epsilon, mean_reward, steps, generation, score, episode, game_info = dqn_agent.api()
-        board, state = board.tolist(), state.tolist()
-        score -= 3
+        dqn.simulate()
+        if dqn.super_light_api() == "Finished":
+            break
+        
+        board, state, reward, epsilon, mean_reward, steps, generation, score = dqn.api()
+        board = board.tolist()
+        state = state.tolist()
 
-        pygame.display.set_caption(f"SnakeQ by ludius0        Score: {score}    Episode: {episode}   \
-            Generation: {generation}    Steps: {steps}    Epsilon: {epsilon}    Mean Reward: {mean_reward}")
+        if count % 100000 == 0:
+            print("Generation", generation, "Mean reward", mean_reward, "Epsilon", epsilon, "Mean Reward", mean_reward)
+            dqn.save()
+            count = 0
+
+        pygame.display.set_caption(f"SnakeQ by ludius0        Score: {score}    Generation: {generation}    Steps: {steps}    Epsilon: {epsilon}    Mean Reward: {mean_reward}")
 
         win.draw_sensor_bg()
         win.draw_sensors(state)
-        win.draw_board(board)
-        win.draw_text([score, episode, generation, steps, epsilon, mean_reward])
+        win.draw_board(board, dqn.agent.env.blocks)
+        win.draw_text([score, generation, steps, epsilon, mean_reward])
 
-        if game_info["won game"]:
-            print("finished")
-            input()
-            break
-
-    pygame.quit()
+        count += 1

@@ -16,23 +16,29 @@ ORANGE = (250, 130, 49)
 BLUE = (7, 153, 146)
 BLUE2 = (30, 55, 153)
 
-# GUI and ENV (*Numbers have to be rounded)
-pixel = 100
-width_height = 800
-app_width = 800
-app_height = 600
-train_height = 500
-row = 10
+# GUI
+PIXEL = 100
+WIDTH_HEIGHT = 800
+APP_WIDTH = 800
+APP_HEIGHT = 600
+TRAIN_HEIGHT = 500
 
-# Neural Network and Q-learning
+# Env
+ROW = 5
+
+# Q-learning
 GAMMA = 0.99  # discount
-BATCH_SIZE = 64
+BATCH_SIZE = 3
 REPLAY_SIZE = 10000
 LEARNING_RATE = 1e-4
 SYNC_TARGET_LOOPS = 1000
 REPLAY_START_SIZE = 10000
 
-# epsilon -> chance for random action
+# + epsilon -> chance for random action
 EPSILON_DECAY_LAST_FRAME = 10**5
 EPSILON_START = 1.0
 EPSILON_FINAL = 0.02
+
+# Neural network
+INPUT_SIZE = 28
+N_ACTIONS = 4
