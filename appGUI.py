@@ -125,7 +125,7 @@ def check_speed():
     keys = pygame.key.get_pressed()
     for key in keys:
         if keys[pygame.K_SPACE] and speed_up == True:
-            time_delay, time_tick = 120, 20
+            time_delay, time_tick = TIME_DELAY, TIME_TICK
             speed_up = False
             return
         elif keys[pygame.K_SPACE] and speed_up == False:
@@ -133,7 +133,7 @@ def check_speed():
             speed_up = True
             return
         elif keys[pygame.K_q]:
-            dqn_agent.save()
+            dqn.save()
             print("Ai saved")
             return
 
@@ -145,7 +145,7 @@ if __name__ == "__main__":
     env = environment.Environment(ROW)
     buffer = agent.ExperienceBuffer(REPLAY_SIZE)
     agent = agent.Agent(env, buffer)
-    dqn = q_learning.DQN(net, buffer, agent, load=False)
+    dqn = q_learning.DQN(net, buffer, agent, load=True)
     win = DrawWindow()
 
     flag = True
@@ -153,8 +153,10 @@ if __name__ == "__main__":
 
     pygame.display.set_caption("SnakeQ by ludius0")
     clock = pygame.time.Clock()
-    time_delay, time_tick = 120, 20
+    time_delay, time_tick = TIME_DELAY, TIME_TICK
     speed_up = True
+
+    input() # for recording
 
     while True:
         # Pygame events and time

@@ -160,7 +160,7 @@ class Environment():
             self.reset()
 
         self.move(action)
-        self.compute_state()
         self.refresh_board()
+        self.compute_state()
 
         return self.state, self.reward, self.done, self.info

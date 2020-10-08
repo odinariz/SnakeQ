@@ -9,7 +9,7 @@ net = q_learning.Neural_Network()
 env = environment.Environment(ROW)
 buffer = agent.ExperienceBuffer(REPLAY_SIZE)
 agent = agent.Agent(env, buffer)
-dqn = q_learning.DQN(net, buffer, agent, load=False)
+dqn = q_learning.DQN(net, buffer, agent, load=True)
 
 flag = True
 count = 0
