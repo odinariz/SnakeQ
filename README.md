@@ -9,7 +9,7 @@
 - pytorch
 - pygame
 
-\made in python 3.7+
+made in python 3.7+
 
 ## ABOUT:
 Using DQN for teaching snake to play its own game. If you want to try it self you just type *python appGUI.py*. It will load existing model in *model* directory. If you want play with settings of Neural Network and train own, than go to *parameters.py*. To train own model you need to in *parameters.py* change LOAD to False (bear in mind if you stop code and than you want use last saved model, you need to change it back to True).
