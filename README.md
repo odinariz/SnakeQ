@@ -7,7 +7,7 @@
 ## Requirements to install:
 - numpy
 - pytorch
-- pygame /
+- pygame \
 *made in python 3.7+*
 
 ## ABOUT:
