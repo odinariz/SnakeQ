@@ -18,10 +18,12 @@ If you want understand more of structure of code: *environment.py* is whole Snak
 
 State? Neural network is feed by 28 long vector tensor. First four are distance to wall (range from 0 to 1). Eight are True or False (in form 1 and 0) if it see apple. Another eight are distance to own snake body (range from 1 to 0). Four are direction of head and last four are direction of tail both as True and False (1 or 0).
 
+Rewards? Hitting self or border -> -100. Eating an apple -> 30. Every step -> -1. A lot of steps (row*row/2) -> -100. Winning the game -> 1000.
+
 Code is under MIT license, so you can use it as you want.
 
 ### Structure:
 Neural Network is linear and use ReLU activation function and Adam optimizer. Computing loss function is handled in DQN class and if you want change some parameters in DQN, you can change them in *parameters.py*. Only thing I don't recommend to change is BATCH. I tried 32 size of batch and event after 1000000 generations, there weren't any improvements.
 
 ### Note:
-So far this was my most complicated project, because I was still learning reinforcement learning and I wanted to do this project to test my understanding. I learned DQN from Maxim Lapan book on reinforcement learning. He there used DQN for game FrozenLake in gym module and on Atari pong. I wanted for long time make snake game with AI learning on its own and here it is. After 100000 
+So far this was my most complicated project, because I was still learning reinforcement learning and I wanted to do this project to test my understanding. I learned DQN from Maxim Lapan book on reinforcement learning. He there used DQN for game FrozenLake in gym module and on Atari pong. I wanted for long time make snake game with AI learning on its own and here it is. After 95000+ generations any further training didn't yield betetr result or I didn't give it enough computation time. Best mean result was around 370 reward.
