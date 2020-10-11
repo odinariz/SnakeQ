@@ -1,5 +1,5 @@
 # SnakeQ
 
-![ezgif com-gif-maker](https://user-images.githubusercontent.com/57571014/95001085-f494fb80-05c6-11eb-97db-584c31f0870a.gif)
+![gif](https://user-images.githubusercontent.com/57571014/95682411-5b2ca180-0be5-11eb-926f-ed95a5b26f85.gif)
 
-The best I could get was around mean reward 50. Than Ai was stuck and I didn't yield any better results even after using GPU from Google Colab. DQN isn't good choice for snake game.
+# **SNAKE LEARNING TO PLAY IT SELF WITH DEEP Q LEARNING
