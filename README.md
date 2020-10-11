@@ -18,7 +18,12 @@ If you want understand more of structure of code: *environment.py* is whole Snak
 
 State? Neural network is feed by 28 long vector tensor. First four are distance to wall (range from 0 to 1). Eight are True or False (in form 1 and 0) if it see apple. Another eight are distance to own snake body (range from 1 to 0). Four are direction of head and last four are direction of tail both as True and False (1 or 0).
 
-Rewards? Hitting self or border: -100. Eating an apple: 30. Every step: -1. A lot of steps: -100. Winning the game: 1000.
+Rewards?: 
+- Hitting self or border: -100. 
+- Eating an apple: 30. 
+- Every step: -1. 
+- A lot of steps: -100. 
+- Winning the game: 1000.
 
 Code is under MIT license, so you can use it as you want.
 
