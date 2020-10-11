@@ -19,11 +19,11 @@ class Neural_Network(nn.Module):
         """
         
         self.model = nn.Sequential(
-            nn.Linear(INPUT_SIZE, 20),
+            nn.Linear(INPUT_SIZE, 64),
             nn.ReLU(),
-            nn.Linear(20, 12),
+            nn.Linear(64, 32),
             nn.ReLU(),
-            nn.Linear(12, N_ACTIONS)
+            nn.Linear(32, N_ACTIONS)
         )
 
         self.optimizer = torch.optim.Adam(self.parameters(), lr=lr)
@@ -54,6 +54,7 @@ class SaveAndLoad:
 
 class DQN(SaveAndLoad):
     def __init__(self, net, buffer, agent, load=False):
+        #super().__init__()
         self.device = self.select_device()
         self.net = net.to(self.device)
         self.target_net = net.to(self.device)
@@ -89,7 +90,7 @@ class DQN(SaveAndLoad):
         self.save_models(self.net, self.agent, self.index, self.total_rewards)
     
     def api(self):    
-        return (self.agent.env.board, self.agent.env.state, self.agent.env.reward, \
+        return (self.agent.env.board, self.agent.env.state, \
                 self.epsilon, self.mean_reward, \
                 self.agent.env.steps, self.agent.generation_count, \
                 self.agent.env.eaten_apples)
@@ -100,7 +101,7 @@ class DQN(SaveAndLoad):
                 self.agent.env.eaten_apples)
     
     def super_light_api(self):
-        return (self.agent.env.info)
+        return self.agent.env.info
     
     def calc_loss(self, batch, device="cpu"):
         # unpack batch
@@ -156,10 +157,17 @@ class DQN(SaveAndLoad):
         # After certain amount time target net become first net
         if self.index % SYNC_TARGET_LOOPS == 0:
             self.target_net.load_state_dict(self.net.state_dict())
-
+        
         # Calculate loss of NN and train it
         self.net.optimizer.zero_grad()
         batch = self.buffer.sample(BATCH_SIZE)
         loss_t = self.calc_loss(batch, device=self.device)
         loss_t.backward()
         self.net.optimizer.step()
+    
+    def play_env(self, state):
+        state_v = torch.tensor(np.array([state], copy=False)).to(self.device, dtype=torch.float32)
+        q_vals = self.net(state_v).data.numpy()[0]
+        action = np.argmax(q_vals)
+        state, reward, done, _ = self.agent.env.step(action)
+        return state

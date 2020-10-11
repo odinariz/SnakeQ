@@ -22,28 +22,28 @@ class SnakeSensors:
         if self.head_y == 0: return 0
         for i in range(self.head_y-1, -1, -1):
             if self.board[i, self.head_x] == target:
-                return 1
+                return i
         return 0
     
     def check_down(self, target):
         if self.head_y == self.dis: return 0
         for i in range(self.head_y+1, self.row):
             if self.board[i, self.head_x] == target:
-                return 1
+                return i
         return 0
     
     def check_right(self, target):
         if self.head_x == self.dis: return 0
         for i in range(self.head_x+1, self.row):
             if self.board[self.head_y, i] == target:
-                return 1
+                return i
         return 0
     
     def check_left(self, target):
         if self.head_x == 0: return 0
         for i in range(self.head_x-1, -1, -1):
             if self.board[self.head_y, i] == target:
-                return 1
+                return i
         return 0
     
     def check_right_up(self, target):
@@ -52,7 +52,7 @@ class SnakeSensors:
         if distance == 0: return 0
         for n in range(1, distance+1):
             if self.board[self.head_y-n, self.head_x+n] == target:
-                return 1
+                return n
         return 0
     
     def check_right_down(self, target):
@@ -60,7 +60,7 @@ class SnakeSensors:
         if distance == self.row: return 0
         for n in range(1, distance+1):
             if self.board[self.head_y+n, self.head_x+n] == target: 
-                return 1
+                return n
         return 0
     
     def check_left_up(self, target):
@@ -68,7 +68,7 @@ class SnakeSensors:
         if distance == 0: return 0
         for n in range(1, distance+1):
             if self.board[self.head_y-n, self.head_x-n] == target: 
-                return 1
+                return n
         return 0
 
     def check_left_down(self, target):
@@ -76,7 +76,7 @@ class SnakeSensors:
         if distance == self.row: return 0
         for n in range(1, distance+1):
             if self.board[self.head_y+n, self.head_x-n] == target: 
-                return 1
+                return n
         return 0
     
     def all_eight_directions(self, target):

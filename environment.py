@@ -13,7 +13,7 @@ class Environment():
         self.moves_dir = {"up": np.array([-1, 0]), "right": np.array([0, 1]), \
                       "down": np.array([1, 0]), "left": np.array([0, -1])}
         # List of all rewards
-        self.reward_dict = {"hit self": -100, "hit boundary": -100, "eat apple": 10, \
+        self.reward_dict = {"hit self": -100, "hit boundary": -100, "eat apple": 30, \
                             "step": -1, "a lot of steps": -100, "win game": 1000}
         # Number of possible actions
         self.action_space = 4
@@ -57,7 +57,7 @@ class Environment():
 ############################### CHECK LOGIC ###############################
     def check_n_steps(self):
         # If count of steps is bigger than treshold; game over
-        if self.steps > (self.row**2/2):
+        if self.steps > (self.row**2//2):
             self.done = True
             self.reward = self.reward_dict["a lot of steps"]
 
@@ -89,7 +89,7 @@ class Environment():
             self.steps = 0
             self.eaten_apples += 1
             self.generate_apple()
-            self.reward = self.reward_dict["eat apple"] + len(self.snake_body)**2
+            self.reward = self.reward_dict["eat apple"] # + len(self.snake_body)**2
             return True
         return False
 
@@ -103,6 +103,7 @@ class Environment():
     
     def move(self, action):
         # handling whole logic
+        # snake can kill himself by going opposite
         if action == 0:     direction = self.moves_dir["up"]
         elif action == 1:   direction = self.moves_dir["right"]
         elif action == 2:   direction = self.moves_dir["down"]
@@ -120,10 +121,12 @@ class Environment():
     def compute_state(self):
         # Compute state of snake sensors from SnakeSensors; get passed to Agent
         self.Sensors.update_sensor_board(self.board, self.snake_body[-1])
-        #next_to_head = self.Sensors.next_to_head(self.blocks["empty"])
+        #next_to_head = self.Sensors.next_to_head(self.blocks["empty"])     # instead of distance
         distance = self.Sensors.distance_to_walls()
         see_apple = self.Sensors.all_eight_directions(self.blocks["apple"])
-        see_self = self.Sensors.all_eight_directions(self.blocks["snake"])
+        for i in range(len(see_apple)):
+          if see_apple[i] > 0: see_apple[i] = see_apple[i] ** 0 # convert any number bigger than 0 to 1
+        see_self = (self.Sensors.all_eight_directions(self.blocks["snake"]) / self.row-1) * -1 # can also be (+ 1)
         head_dir = self.Sensors.get_head_direction(self.direction)
         tail_dir = self.Sensors.get_tail_direction(self.snake_body)
         self.state = np.concatenate((distance, see_apple, see_self, head_dir, tail_dir), axis=0)

@@ -60,6 +60,7 @@ class DrawSensors(SetUp):
 
     def draw_see_self(self, state):
         state_ = self.reshuffle_state(state)
+        state = [x*255 for x in state]
         see_self_list = []
 
         index = 0
@@ -80,7 +81,7 @@ class DrawSensors(SetUp):
 class DrawWindow(DrawSensors):
     def __init__(self):
         super().__init__()
-        self.text_strings = ["Score:", "Generation:", "Steps:", "Epsilon:", "Mean Reward:"]
+        self.text_strings = ["Score:", "Generation:", "Steps:", "Epsilon:"] # for drawing text
         self.text_range = 30
     
     def draw_sensor_bg(self):
@@ -114,7 +115,7 @@ class DrawWindow(DrawSensors):
             self.screen.blit(textsurface, textRect)
 
             if text_list[index] != None:
-                textsurface2 = myfont.render(f"{round(text_list[index], 2)}", False, BLACK)
+                textsurface2 = myfont.render(f"{round(text_list[index], 4)}", False, BLACK)
                 textRect2 = textsurface2.get_rect()
                 textRect2.center = (self.width-(self.width_plus//2)+self.width_plus, self.text_range*index*3+self.text_range*2) 
                 self.screen.blit(textsurface2, (textRect2.center[0]-10, textRect2.center[1]+self.text_range-10))
@@ -122,6 +123,7 @@ class DrawWindow(DrawSensors):
 
 def check_speed():
     global speed_up, time_delay, time_tick
+    # pygame keybindings
     keys = pygame.key.get_pressed()
     for key in keys:
         if keys[pygame.K_SPACE] and speed_up == True:
@@ -142,25 +144,30 @@ def check_speed():
             return
 
 if __name__ == "__main__":
+    # pygame stuffs
     pygame.init()
     pygame.font.init()
 
+    # DQN components
     net = q_learning.Neural_Network()
     env = environment.Environment(ROW)
     buffer = agent.ExperienceBuffer(REPLAY_SIZE)
     agent = agent.Agent(env, buffer)
-    dqn = q_learning.DQN(net, buffer, agent, load=True)
+    dqn = q_learning.DQN(net, buffer, agent, load=LOAD)
     win = DrawWindow()
 
+    # for loop
     flag = True
     count = 0
 
+    # another pygame stuffs
     pygame.display.set_caption("SnakeQ by ludius0")
     clock = pygame.time.Clock()
     time_delay, time_tick = TIME_DELAY, TIME_TICK
     speed_up = True
 
-    input() # for recording
+    # AGENT & ENV
+    state = dqn.agent.env.reset() # for dqn.play_env(state)
 
     while True:
         # Pygame events and time
@@ -170,25 +177,29 @@ if __name__ == "__main__":
             if event.type == pygame.QUIT:
                 pygame.quit()
             check_speed()
+        
+        # run step in snake game
+        state = dqn.play_env(state)     # cannot run simultaneously with dqn.simulate()
+        #dqn.simulate()
 
-        dqn.simulate()
+        # Get data from env for drawing it or ending it
         if dqn.super_light_api() == "Finished":
             break
         
-        board, state, reward, epsilon, mean_reward, steps, generation, score = dqn.api()
+        board, state_, epsilon, mean_reward, steps, generation, score = dqn.api()
         board = board.tolist()
-        state = state.tolist()
+        state_ = state_.tolist()
 
         if count % 100000 == 0:
-            print("Generation", generation, "Mean reward", mean_reward, "Epsilon", epsilon, "Mean Reward", mean_reward)
-            dqn.save()
+            print("Generation", generation, "Mean reward", mean_reward, "Epsilon", epsilon)
+            #dqn.save()
             count = 0
 
+        # draw pygame GUI
         pygame.display.set_caption(f"SnakeQ by ludius0        Score: {score}    Generation: {generation}    Steps: {steps}    Epsilon: {epsilon}    Mean Reward: {mean_reward}")
-
         win.draw_sensor_bg()
-        win.draw_sensors(state)
+        win.draw_sensors(state_)
         win.draw_board(board, dqn.agent.env.blocks)
-        win.draw_text([score, generation, steps, epsilon, mean_reward])
+        win.draw_text([score, generation, steps, epsilon])
 
         count += 1

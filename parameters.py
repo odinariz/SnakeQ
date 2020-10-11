@@ -9,12 +9,6 @@ WHITE = (255, 255, 255)
 GREY = (113, 128, 147)
 GREY2 = (189, 195, 199)
 GREY3 = (87, 96, 111)
-GREY4 = (53, 59, 72)
-RED = (229, 57, 53)
-GREEN = (32, 191, 107)
-ORANGE = (250, 130, 49)
-BLUE = (7, 153, 146)
-BLUE2 = (30, 55, 153)
 
 # GUI
 PIXEL = 100
@@ -24,9 +18,10 @@ APP_HEIGHT = 600
 TRAIN_HEIGHT = 500
 TIME_DELAY = 40
 TIME_TICK = 280
+LOAD = True
 
 # Env
-ROW = 5
+ROW = 10
 
 # Q-learning
 GAMMA = 0.99  # discount
@@ -39,7 +34,7 @@ REPLAY_START_SIZE = 10000
 # + epsilon -> chance for random action
 EPSILON_DECAY_LAST_FRAME = 10**5
 EPSILON_START = 1.0
-EPSILON_FINAL = 0.008
+EPSILON_FINAL = 0.00001
 
 # Neural network
 INPUT_SIZE = 28

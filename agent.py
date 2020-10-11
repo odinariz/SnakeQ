@@ -37,7 +37,7 @@ class Agent:
     def play_step(self, net, epsilon=0.0, device="cpu"):
         done_reward = None
 
-        if np.random.random() < epsilon:
+        if np.random.random() < epsilon:    # select random action or action from NN
             action = self.env.sample_action()
         else:
             state_a = np.array([self.state], copy=False).astype("float32")
