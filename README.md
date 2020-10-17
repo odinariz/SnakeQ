@@ -29,7 +29,6 @@ Neural Network:
 - 64 to 32 neurons
 - ReLU
 - 32 to 4 neurons
-- ReLU
 
 State? Neural network is feed by 28 long vector tensor: 
 - First four are distance to wall (range from 0 to 1). 
